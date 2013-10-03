@@ -17,6 +17,7 @@ struct class_t {
     class_t* superclass;
     unsigned int instance_size;
     linked_list_t methods;
+    linked_list_t class_methods;
 };
 
 typedef struct {
@@ -45,6 +46,7 @@ void class_name ##_init(char* cls_name, int class_instance_size, int instance_si
     class_->name = cls_name;\
     class_->instance_size = instance_size;\
     class_->methods = linked_list_create();\
+    class_->class_methods = linked_list_create();\
     class_->superclass = superclass;\
     linked_list_add(class_list, class_);\
 }\

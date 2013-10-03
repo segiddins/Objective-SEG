@@ -42,9 +42,8 @@ void linked_list_add(linked_list *ll, void *obj)
         ll->first_node = linked_list_node_create(obj);
         return;
     }
-    do {
+    while (node && node->cdr)
         node = node->cdr;
-    } while (node && node->cdr);
     node->cdr = linked_list_node_create(obj);
 }
 
@@ -79,9 +78,10 @@ void *seg_generic_msg_send_class(obj obj, msg_t msg, class class)
     if (mthd) {
         void *(*imp)(obj_t*, msg_t) = mthd->imp;
         return imp(obj, msg);
-    } else {
-        seg_generic_msg_send_class(obj, msg, class->superclass);
+    } else if (class->superclass) {
+        return seg_generic_msg_send_class(obj, msg, class->superclass);
     }
+    printf("%s does not recognize the message '%s'\n", seg_generic_msg_send(obj, "desc"), msg);
     return NULL;
 }
 
@@ -124,9 +124,40 @@ void seg_runtime_load()
 
 seg_def_class(object, NULL, {});
 
-void object_cool(obj self, msg_t msg)
+class object_class(obj self, msg_t msg)
 {
-    printf("%s\n", msg);
+    return self->class;
 }
 
-seg_declare_instance_method(object, cool);
+obj object_retain(obj self, msg_t msg)
+{
+    self->retain_count = self->retain_count + 1;
+    return self;
+}
+
+obj object_release(obj self, msg_t msg)
+{
+    int retcount = self->retain_count;
+    if (!--retcount) seg_generic_msg_send(self, "free");
+    return retcount ? self : NULL;
+}
+
+obj object_free(obj self, msg_t msg)
+{
+    free(self);
+    return self;
+}
+
+char* object_desc(obj self, msg_t msg)
+{
+    char * class_name = ((class)seg_generic_msg_send(self, "class"))->name;
+    char * desc = malloc(1024);
+    snprintf(desc, 1024, "<%p: %s>", self, class_name);
+    return desc;
+}
+
+seg_declare_instance_method(object, class);
+seg_declare_instance_method(object, retain);
+seg_declare_instance_method(object, release);
+seg_declare_instance_method(object, free);
+seg_declare_instance_method(object, desc);

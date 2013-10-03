@@ -13,6 +13,7 @@ void test()
 {
     obj obj = class_new(get_class(object), "new");
     seg_generic_msg_send(obj, "cool");
+    printf("%s\n", seg_generic_msg_send(obj, "desc"));
 }
 
 int main(int argc, const char * argv[])
@@ -20,4 +21,3 @@ int main(int argc, const char * argv[])
     test();
     return 0;
 }
-
