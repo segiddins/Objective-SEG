@@ -12,6 +12,7 @@
 		C0792CE317FCC6CD00510868 /* Test.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = C0792CE217FCC6CD00510868 /* Test.1 */; };
 		C0792CE717FCC70E00510868 /* libobj_seg.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = C0792CD017FCC49200510868 /* libobj_seg.dylib */; };
 		C0792CE817FD062400510868 /* runtime.h in Headers */ = {isa = PBXBuildFile; fileRef = C0792CD817FCC4DF00510868 /* runtime.h */; };
+		C0B2A8261801F363005C855F /* msg_send_x86_64.s in Sources */ = {isa = PBXBuildFile; fileRef = C0B2A8251801F363005C855F /* msg_send_x86_64.s */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -34,6 +35,7 @@
 		C0792CDE17FCC6CD00510868 /* Test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Test; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0792CE017FCC6CD00510868 /* main.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = main.c; sourceTree = "<group>"; };
 		C0792CE217FCC6CD00510868 /* Test.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = Test.1; sourceTree = "<group>"; };
+		C0B2A8251801F363005C855F /* msg_send_x86_64.s */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.asm; path = msg_send_x86_64.s; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -78,6 +80,7 @@
 			children = (
 				C0792CD617FCC4D000510868 /* runtime.c */,
 				C0792CD817FCC4DF00510868 /* runtime.h */,
+				C0B2A8251801F363005C855F /* msg_send_x86_64.s */,
 			);
 			name = Runtime;
 			sourceTree = "<group>";
@@ -170,6 +173,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0B2A8261801F363005C855F /* msg_send_x86_64.s in Sources */,
 				C0792CD717FCC4D000510868 /* runtime.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -188,12 +192,16 @@
 		C0792CCA17FCC46500510868 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
 		C0792CCB17FCC46500510868 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
@@ -358,6 +366,7 @@
 				C0792CD417FCC49200510868 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		C0792CE417FCC6CD00510868 /* Build configuration list for PBXNativeTarget "Test" */ = {
 			isa = XCConfigurationList;
@@ -366,6 +375,7 @@
 				C0792CE617FCC6CD00510868 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

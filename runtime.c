@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdarg.h>
 #include "runtime.h"
 
 typedef struct {
@@ -53,6 +54,19 @@ linked_list *linked_list_create()
     return ll;
 }
 
+void linked_list_each(linked_list *ll, int(^enumerator)(int index, void *object))
+{
+    assert(ll);
+    assert(enumerator);
+    linked_list_node *node = ll->first_node;
+    int index = 0;
+    int stop = 1;
+    while (node && stop) {
+        stop = enumerator(index++, node->car);
+        node = node->cdr;
+    }
+}
+
 method *method_create(char *name, void *imp)
 {
     assert(imp);
@@ -62,33 +76,24 @@ method *method_create(char *name, void *imp)
     return mthd;
 }
 
-void *seg_generic_msg_send_class(obj obj, msg_t msg, class class)
+void* seg_get_imp(obj obj, msg_t msg)
 {
-    if (!obj || !class) return NULL;
-    linked_list *methods = class->methods;
-    linked_list_node *node = methods->first_node;
-    method *mthd = NULL;
-    while (node) {
-        if (!strcmp(((method*)(node->car))->name, msg)) {
-            mthd = node->car;
-            break;
-        }
-        node = node->cdr;
+    assert(obj);
+    assert(msg);
+    class class = obj->class;
+    __block method *mthd = NULL;
+    while (!mthd && class) {
+        linked_list *methods = class->methods;
+        linked_list_each(methods, ^int(int index, void *object) {
+            method *method = object;
+            int retVal = strcmp(method->name, msg);
+            if (!retVal) mthd = method;
+            return retVal;
+        });
+        class = class->superclass;
     }
-    if (mthd) {
-        void *(*imp)(obj_t*, msg_t) = mthd->imp;
-        return imp(obj, msg);
-    } else if (class->superclass) {
-        return seg_generic_msg_send_class(obj, msg, class->superclass);
-    }
-    printf("%s does not recognize the message '%s'\n", seg_generic_msg_send(obj, "desc"), msg);
-    return NULL;
-}
-
-void* seg_generic_msg_send(obj obj, msg_t msg)
-{
-    if (!obj) return NULL;
-    return seg_generic_msg_send_class(obj, msg, obj->class);
+    if (!mthd) return seg_get_imp(obj, "no_such_method");
+    return mthd->imp;
 }
 
 obj class_new(class class, msg_t msg)
@@ -101,28 +106,49 @@ obj class_new(class class, msg_t msg)
 
 class get_class(char *class_name)
 {
-    linked_list_node *node = class_list->first_node;
-    class class = node ? node->car : NULL;
-    while (class) {
-        if (!strcmp(class_name, class->name))
-            break;
-        class = node->cdr;
-    }
-    return class;
+    __block class found_class = NULL;
+    linked_list_each(class_list, ^int(int index, void *object) {
+        class object_class = object;
+        int retVal = strcmp(class_name, object_class->name);
+        if (!retVal) found_class = object_class;
+        return retVal;
+    });
+    return found_class;
 }
 
 void class_add_instance_method(class class, method *method)
 {
+    assert(class);
+    assert(method);
     linked_list_add(class->methods, method);
 }
 
-__attribute((constructor))
+void _seg_declare_instance_method(class class, char* message_name, void *IMP)
+{
+    class_add_instance_method(class, method_create(message_name, IMP));
+}
+
+__attribute((constructor (100)))
 void seg_runtime_load()
 {
     class_list = linked_list_create();
 }
 
-seg_def_class(object, NULL, {});
+void seg_class_init(char* cls_name, int class_instance_size, int instance_size, class superclass)
+{
+    class class_ = calloc(1, class_instance_size);
+    class_->name = cls_name;
+    class_->instance_size = instance_size;
+    class_->methods = linked_list_create();
+    class_->class_methods = linked_list_create();
+    class_->superclass = superclass;
+    linked_list_add(class_list, class_);
+}
+
+seg_def_class(object, NULL, {
+    class_t *class;
+    int retain_count;
+});
 
 class object_class(obj self, msg_t msg)
 {
@@ -156,8 +182,15 @@ char* object_desc(obj self, msg_t msg)
     return desc;
 }
 
+void object_no_such_method(obj self, msg_t msg)
+{
+    printf("%s does not respond to the message '%s'\n", send_msg(self, "desc"), msg);
+//    abort();
+}
+
 seg_declare_instance_method(object, class);
 seg_declare_instance_method(object, retain);
 seg_declare_instance_method(object, release);
 seg_declare_instance_method(object, free);
 seg_declare_instance_method(object, desc);
+seg_declare_instance_method(object, no_such_method);
