@@ -96,6 +96,11 @@ void* seg_get_imp(obj obj, msg_t msg)
     return mthd->imp;
 }
 
+void* seg_null_msg_send(obj obj, msg_t msg)
+{
+    return NULL;
+}
+
 obj class_new(class class, msg_t msg)
 {
     obj new = calloc(1, class->instance_size);

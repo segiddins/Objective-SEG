@@ -15,9 +15,8 @@ $0:
 .endmacro
 
 ENTRY _seg_generic_msg_send
-//    testq %rsi, %rsi
-//    leave
-//    ret
+    testq %rdi, %rdi
+    je _seg_null_msg_send
     pushq %rsi
     pushq %rdi
     pushq %rdx
